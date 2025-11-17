@@ -12,7 +12,7 @@
 ## Установка
 
 ```bash
-sudo bash <(curl -fsSL https://raw.githubusercontent.com/myrs/sshdock/main/install.sh)
+sudo bash <(curl -fsSL https://raw.githubusercontent.com/MYRSGRAL/sshdock/main/install.sh)
 ```
 
 Инсталлятор делает следующее:
