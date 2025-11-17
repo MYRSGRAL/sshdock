@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BIN_URL=${BIN_URL:-"https://github.com/myrs/sshdock/releases/latest/download/sshdock"}
-SERVICE_URL=${SERVICE_URL:-"https://raw.githubusercontent.com/myrs/sshdock/main/sshdock.service"}
+BIN_URL=${BIN_URL:-"https://github.com/MYRSGRAL/sshdock/releases/download/main/sshdock"}
+SERVICE_URL=${SERVICE_URL:-"https://raw.githubusercontent.com/MYRSGRAL/sshdock/main/sshdock.service"}
 BIN_PATH=${BIN_PATH:-"/usr/local/bin/sshdock"}
 SERVICE_PATH=${SERVICE_PATH:-"/etc/systemd/system/sshdock.service"}
 CONFIG_PATH=${CONFIG_PATH:-"/etc/sshdock/config.toml"}
