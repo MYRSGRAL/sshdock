@@ -70,10 +70,4 @@ fi
 printf '[INFO] Не забудь отредактировать %s перед запуском!\n' "$CONFIG_PATH"
 
 systemctl daemon-reload
-read -r -p "Включить и запустить sshdock.service прямо сейчас? [y/N]: " answer || true
-if [[ $answer =~ ^[Yy]$ ]]; then
-    systemctl enable --now sshdock.service
-    systemctl status sshdock.service --no-pager
-else
-    printf '[INFO] Запусти вручную: sudo systemctl enable --now sshdock.service\n'
-fi
+printf '[INFO] Перезапустил systemd, включи сервис вручную: sudo systemctl enable --now sshdock.service\n'

@@ -11,19 +11,25 @@
 
 ## Установка
 
-```bash
-sudo bash <(curl -fsSL https://raw.githubusercontent.com/MYRSGRAL/sshdock/main/install.sh)
-```
+1. **Запусти установщик.** Он скачает свежий бинарь, положит unit и создаст конфигурацию, если её ещё нет:
 
-Инсталлятор делает следующее:
+   ```bash
+   curl -fsSL https://raw.githubusercontent.com/MYRSGRAL/sshdock/main/install.sh | sudo bash
+   ```
 
-1. Скачивает последнюю сборку (`sshdock-x86_64-unknown-linux-gnu`) из релизов GitHub.
-2. Копирует бинарь в `/usr/local/bin/sshdock`.
-3. Кладёт `sshdock.service` в `/etc/systemd/system/`.
-4. Создаёт `/etc/sshdock/config.toml` с подробным шаблоном (или оставляет ваш файл без изменений).
-5. Выполняет `systemctl daemon-reload` и предлагает сразу включить сервис.
+   После завершения `sshdock` окажется в `/usr/local/bin/`, unit — в `/etc/systemd/system/`, а шаблон конфига — в `/etc/sshdock/config.toml`.
 
-Требования: root, наличие `curl`, `systemctl`, `install`.
+2. **Отредактируй конфиг.** Открой `/etc/sshdock/config.toml` (или перемести его в `~/.config/sshdock/config.toml`, если хочешь управлять от пользователя) и пропиши свои сети в секции `[[networks]]`: нужные SSID/BSSID, имя службы для запуска, требования к питанию и т. д. Без корректного описания профилей `sshdock` просто ничего не сделает.
+
+3. **Включи и запусти сервис.** Инсталлятор уже выполнил `systemctl daemon-reload`, осталось лишь включить unit и сразу запустить его:
+
+   ```bash
+   sudo systemctl enable --now sshdock.service
+   ```
+
+   Статус можно проверить через `systemctl status sshdock.service`, а логи — через `journalctl -u sshdock.service -f`.
+
+
 
 ## Конфигурация (`~/.config/sshdock/config.toml` или `/etc/sshdock/config.toml`)
 
