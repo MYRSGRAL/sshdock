@@ -1,0 +1,24 @@
+# /etc/sshdock/config.toml
+# См. README для подробностей.
+
+poll_interval_secs = 5
+ssh_service = "sshd.service"
+
+[[networks]]
+name = "Док-станция"
+ssid = "CorpWifi"
+bssid = "AA:BB:CC:DD:EE:FF"
+interface = "wlan0"
+enable_ssh = true
+stop_ssh_on_disconnect = true
+prevent_lid_sleep = true
+prevent_idle_sleep = true
+require_ac_power = true
+
+[[networks]]
+name = "Дом"
+ssid = "HomeWifi"
+enable_ssh = false
+prevent_lid_sleep = true
+prevent_idle_sleep = false
+require_ac_power = false

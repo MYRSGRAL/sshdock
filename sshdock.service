@@ -1,0 +1,19 @@
+[Unit]
+Description=SSHDock Wi-Fi policy service
+Documentation=https://github.com/MYRSGRAL/sshdock
+After=network-online.target dbus.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+Environment=RUST_LOG=info
+Environment=SSHFDOCK_CONFIG=/etc/sshdock/config.toml
+ExecStart=/usr/local/bin/sshdock
+Restart=on-failure
+RestartSec=5s
+StartLimitIntervalSec=0
+
+[Install]
+WantedBy=multi-user.target
