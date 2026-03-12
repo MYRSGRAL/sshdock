@@ -2,10 +2,9 @@ use zbus::blocking::{Connection, Proxy};
 
 use crate::error::AppError;
 
-pub fn is_on_ac_power() -> Result<bool, AppError> {
-    let conn = Connection::system()?;
+pub fn is_on_ac_power(conn: &Connection) -> Result<bool, AppError> {
     let proxy = Proxy::new(
-        &conn,
+        conn,
         "org.freedesktop.UPower",
         "/org/freedesktop/UPower",
         "org.freedesktop.UPower",

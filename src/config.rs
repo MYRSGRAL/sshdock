@@ -160,3 +160,124 @@ fn default_poll_interval() -> u64 {
 fn default_ssh_service() -> String {
     "sshd.service".to_string()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn network(toml_str: &str) -> NetworkConfig {
+        toml::from_str(toml_str).unwrap()
+    }
+
+    fn wifi(ssid: &str, bssid: Option<&str>, device: Option<&str>) -> WifiInfo {
+        WifiInfo {
+            ssid: ssid.to_string(),
+            bssid: bssid.map(|s| s.to_string()),
+            device: device.map(|s| s.to_string()),
+        }
+    }
+
+    #[test]
+    fn matches_ssid_only() {
+        let net = network(r#"ssid = "Home""#);
+        assert!(net.matches(&wifi("Home", None, None)));
+        assert!(!net.matches(&wifi("Other", None, None)));
+    }
+
+    #[test]
+    fn matches_bssid_case_insensitive() {
+        let net = network(
+            r#"
+            ssid = "Home"
+            bssid = "AA:BB:CC:DD:EE:FF"
+            "#,
+        );
+        assert!(net.matches(&wifi("Home", Some("aa:bb:cc:dd:ee:ff"), None)));
+        assert!(!net.matches(&wifi("Home", Some("11:22:33:44:55:66"), None)));
+        assert!(!net.matches(&wifi("Home", None, None)));
+    }
+
+    #[test]
+    fn matches_interface() {
+        let net = network(
+            r#"
+            ssid = "Home"
+            interface = "wlan0"
+            "#,
+        );
+        assert!(net.matches(&wifi("Home", None, Some("wlan0"))));
+        assert!(!net.matches(&wifi("Home", None, Some("wlan1"))));
+        assert!(!net.matches(&wifi("Home", None, None)));
+    }
+
+    #[test]
+    fn inhibitor_targets_both() {
+        let net = network(
+            r#"
+            ssid = "X"
+            prevent_lid_sleep = true
+            prevent_idle_sleep = true
+            "#,
+        );
+        assert_eq!(
+            net.inhibitor_targets(),
+            Some("handle-lid-switch:sleep".to_string())
+        );
+    }
+
+    #[test]
+    fn inhibitor_targets_none() {
+        let net = network(
+            r#"
+            ssid = "X"
+            prevent_lid_sleep = false
+            prevent_idle_sleep = false
+            "#,
+        );
+        assert_eq!(net.inhibitor_targets(), None);
+    }
+
+    #[test]
+    fn inhibitor_targets_lid_only() {
+        let net = network(
+            r#"
+            ssid = "X"
+            prevent_lid_sleep = true
+            prevent_idle_sleep = false
+            "#,
+        );
+        assert_eq!(
+            net.inhibitor_targets(),
+            Some("handle-lid-switch".to_string())
+        );
+    }
+
+    #[test]
+    fn inhibitor_targets_sleep_only() {
+        let net = network(
+            r#"
+            ssid = "X"
+            prevent_lid_sleep = false
+            prevent_idle_sleep = true
+            "#,
+        );
+        assert_eq!(net.inhibitor_targets(), Some("sleep".to_string()));
+    }
+
+    #[test]
+    fn display_name_uses_name_field() {
+        let net = network(
+            r#"
+            ssid = "CorpWifi"
+            name = "Офис"
+            "#,
+        );
+        assert_eq!(net.display_name(), "Офис");
+    }
+
+    #[test]
+    fn display_name_falls_back_to_ssid() {
+        let net = network(r#"ssid = "CorpWifi""#);
+        assert_eq!(net.display_name(), "CorpWifi");
+    }
+}

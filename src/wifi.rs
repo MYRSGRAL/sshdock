@@ -51,7 +51,7 @@ fn run_nmcli(args: &[&str]) -> Result<String, AppError> {
     }
 }
 
-fn parse_nmcli_line(line: &str) -> Vec<String> {
+pub(crate) fn parse_nmcli_line(line: &str) -> Vec<String> {
     let mut fields = Vec::new();
     let mut current = String::new();
     let mut escaped = false;
@@ -71,4 +71,33 @@ fn parse_nmcli_line(line: &str) -> Vec<String> {
     }
     fields.push(current);
     fields
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_simple_line() {
+        let fields = parse_nmcli_line("yes:MyWifi:AA\\:BB\\:CC\\:DD\\:EE\\:FF:wlan0");
+        assert_eq!(fields, vec!["yes", "MyWifi", "AA:BB:CC:DD:EE:FF", "wlan0"]);
+    }
+
+    #[test]
+    fn parse_empty_fields() {
+        let fields = parse_nmcli_line("no::::");
+        assert_eq!(fields, vec!["no", "", "", "", ""]);
+    }
+
+    #[test]
+    fn parse_escaped_backslash() {
+        let fields = parse_nmcli_line("a\\\\b:c");
+        assert_eq!(fields, vec!["a\\b", "c"]);
+    }
+
+    #[test]
+    fn parse_single_field() {
+        let fields = parse_nmcli_line("only");
+        assert_eq!(fields, vec!["only"]);
+    }
 }

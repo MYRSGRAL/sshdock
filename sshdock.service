@@ -9,7 +9,7 @@ Type=simple
 User=root
 Group=root
 Environment=RUST_LOG=info
-Environment=SSHFDOCK_CONFIG=/etc/sshdock/config.toml
+Environment=SSHDOCK_CONFIG=/etc/sshdock/config.toml
 ExecStart=/usr/local/bin/sshdock
 Restart=on-failure
 RestartSec=5s

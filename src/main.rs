@@ -13,6 +13,7 @@ use std::thread;
 use log::{info, warn};
 use signal_hook::consts::TERM_SIGNALS;
 use signal_hook::flag::{register, register_conditional_shutdown};
+use zbus::blocking::Connection;
 
 use crate::config::Config;
 use crate::error::AppError;
@@ -36,7 +37,7 @@ fn run() -> Result<(), AppError> {
         register(*sig, shutdown.clone())?;
     }
 
-    let config_path = std::env::var("SSHFDOCK_CONFIG").ok().map(PathBuf::from);
+    let config_path = std::env::var("SSHDOCK_CONFIG").ok().map(PathBuf::from);
     let config = Config::load(config_path.as_deref())?;
     if config.networks().is_empty() {
         return Err(AppError::Config(
@@ -51,10 +52,12 @@ fn run() -> Result<(), AppError> {
         poll_interval
     );
 
+    let dbus_conn = Connection::system()?;
     let mut state = AppliedState::default();
+    let mut last_skipped: Option<usize> = None;
 
     while !shutdown.load(Ordering::Relaxed) {
-        let ac_online = match is_on_ac_power() {
+        let ac_online = match is_on_ac_power(&dbus_conn) {
             Ok(state) => state,
             Err(err) => {
                 warn!("unable to query AC power state: {err}");
@@ -71,19 +74,27 @@ fn run() -> Result<(), AppError> {
                     .find(|(_, prof)| prof.matches(&wifi))
                 {
                     if profile.requires_ac_power() && !ac_online {
-                        info!(
-                            "skipping profile '{}' because charger is not connected",
-                            profile.display_name()
-                        );
+                        if last_skipped != Some(idx) {
+                            info!(
+                                "skipping profile '{}' because charger is not connected",
+                                profile.display_name()
+                            );
+                            last_skipped = Some(idx);
+                        }
                         state.clear()?;
-                        continue;
+                    } else {
+                        last_skipped = None;
+                        state.apply_profile(idx, profile, &config)?;
                     }
-                    state.apply_profile(idx, profile, &config)?;
                 } else {
+                    last_skipped = None;
                     state.clear()?;
                 }
             }
-            Ok(None) => state.clear()?,
+            Ok(None) => {
+                last_skipped = None;
+                state.clear()?;
+            }
             Err(err) => warn!("unable to query Wi-Fi state: {err}"),
         }
 
